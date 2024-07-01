@@ -37,31 +37,31 @@
                 "name": "主管",
                 "desc": "用户主管的姓名",
                 "type": "string",
-                "value": ""
+                "value": "王杰"
             },
             {
                 "name": "申请理由",
                 "desc": "用户请假的申请理由，申请原因",
                 "type": "string",
-                "value": ""
+                "value": "参加家庭活动"
             },
             {
                 "name": "请假类别",
                 "desc": "用户请假的类别，例如：病假、事假、休假、婚假等",
                 "type": "string",
-                "value": ""
+                "value": "事假"
             },
             {
                 "name": "开始时间",
                 "desc": "用户请假的开始日期,格式：YYYY-MM-DD hh:mm",
                 "type": "string",
-                "value": ""
+                "value": "2024-06-28 09:00"
             },
             {
                 "name": "结束时间",
                 "desc": "用户请假的结束日期,格式：YYYY-MM-DD hh:mm",
                 "type": "string",
-                "value": ""
+                "value": "2024-07-21 09:00"
             }
         ]
     }

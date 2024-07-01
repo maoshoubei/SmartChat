@@ -64,5 +64,41 @@
         "required": true
       }
     ]
+  },
+  "create_repair_work_order":{
+    "name": "创建维修工单",
+    "description": "帮助用户自动实现创建维修工单流程",
+    "parameters": [
+      {
+        "name": "设备名称",
+        "desc": "需要进行维修的设备的名称",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "区域位置",
+        "desc": "需要进行维修的设备所在的区域位置",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "故障描述",
+        "desc": "需要进行维修的设备发生的故障的描述",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "故障原因",
+        "desc": "需要进行维修的设备发生的故障的故障原因如：如设备损坏、人为损坏、其他原因等",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "紧急程度",
+        "desc": "设备需要进行维修的紧急程度如:紧急、一般、不紧急",
+        "type": "string",
+        "required": true
+      }
+    ]
   }
 }

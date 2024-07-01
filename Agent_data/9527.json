@@ -37,29 +37,65 @@
                 "name": "主管",
                 "desc": "用户主管的姓名",
                 "type": "string",
-                "value": ""
+                "value": "毛守备"
             },
             {
                 "name": "申请理由",
                 "desc": "用户请假的申请理由，申请原因",
                 "type": "string",
-                "value": ""
+                "value": "参加家庭活动"
             },
             {
                 "name": "请假类别",
                 "desc": "用户请假的类别，例如：病假、事假、休假、婚假等",
                 "type": "string",
-                "value": ""
+                "value": "事假"
             },
             {
                 "name": "开始时间",
                 "desc": "用户请假的开始日期,格式：YYYY-MM-DD hh:mm",
                 "type": "string",
-                "value": ""
+                "value": "2024-08-01 09:00"
             },
             {
                 "name": "结束时间",
                 "desc": "用户请假的结束日期,格式：YYYY-MM-DD hh:mm",
+                "type": "string",
+                "value": "2024-08-30 17:30"
+            }
+        ]
+    },
+    "create_repair_work_order": {
+        "name": "创建维修工单",
+        "description": "帮助用户自动实现创建维修工单流程",
+        "parameters": [
+            {
+                "name": "设备名称",
+                "desc": "需要进行维修的设备的名称",
+                "type": "string",
+                "value": ""
+            },
+            {
+                "name": "区域位置",
+                "desc": "需要进行维修的设备所在的区域位置",
+                "type": "string",
+                "value": ""
+            },
+            {
+                "name": "故障描述",
+                "desc": "需要进行维修的设备发生的故障的描述",
+                "type": "string",
+                "value": ""
+            },
+            {
+                "name": "故障原因",
+                "desc": "需要进行维修的设备发生的故障的故障原因如：如设备损坏、人为损坏、其他原因等",
+                "type": "string",
+                "value": ""
+            },
+            {
+                "name": "紧急程度",
+                "desc": "设备需要进行维修的紧急程度如:紧急、一般、不紧急",
                 "type": "string",
                 "value": ""
             }

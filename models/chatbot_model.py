@@ -17,17 +17,16 @@ class ChatbotModel:
             parameters = scene_config["parameters"]
             self.scene_slot[key] = get_raw_slot(parameters)
 
-
     @staticmethod
-    def load_scene_processor(self, scene_config,slot, current_purpose):
+    def load_scene_processor(self, scene_config, slot, current_purpose):
         try:
-            return CommonProcessor(scene_config,slot,current_purpose)
+            return CommonProcessor(scene_config, slot, current_purpose)
         except (ImportError, AttributeError, KeyError):
             raise ImportError(f"未找到场景处理器 scene_config: {scene_config}")
 
-    def is_related_to_last_intent(self, user_input,history):
+    def is_related_to_last_intent(self, user_input, history):
         RELATED_INTENT_THRESHOLD = 0.7
-        
+
         """
         判断当前输入是否与上一次意图场景相关
         """
@@ -35,28 +34,12 @@ class ChatbotModel:
             return False
         prompt = f'''
         # 目标：
-            你需要判断当前用户输入内容与当前对话场景的关联性:
+            你需要通过结合历史对话信息来判断当前用户输入内容与当前对话场景的关联性:
             当前对话场景: {self.scene_templates[self.current_purpose]['description']}
+            当前对话场景模板: {self.scene_templates[self.current_purpose]}
             当前用户输入: {user_input}
-            历史对话： role：AI ， content:{history}
-        # 举例：
-            当前对话场景：请假申请
-            当前用户输入：好的，谢谢
-            输出：0.1
-
-            当前对话场景：请假申请
-            当前用户输入：田明广
-            输出：0.7
-
-            当前对话场景：请假申请
-            当前用户搜索：我想要办理套餐
-            输出：0.0
-
-            当前对话场景：请假申请
-            当前用户搜索：我不申请了
-            输出：0.0
-
-            
+            历史对话： {history}
+        
         # 注意：
             这两次输入是否关联（仅用小数回答关联度，得分范围0.0至1.0）'''
         result = send_message(prompt, None)
@@ -86,12 +69,12 @@ class ChatbotModel:
         # 根据用户选择获取对应场景
         if user_choices and user_choices[0] != '0':
             self.current_purpose = purpose_options[user_choices[0]]
-            update_agent_current_scene(self.current_purpose,chatId)
+            update_agent_current_scene(self.current_purpose, chatId)
         if self.current_purpose:
             print(f"用户选择了场景：{self.scene_templates[self.current_purpose]['name']}")
             # 这里可以继续处理其他逻辑
         else:
-            update_agent_current_scene('',chatId)
+            update_agent_current_scene('', chatId)
             # 用户输入的选项无效的情况，可以进行相应的处理
             print("无效的选项，请重新选择")
 
@@ -103,43 +86,45 @@ class ChatbotModel:
         if not scene_config:
             raise ValueError(f"未找到名为{scene_name}的场景配置")
 
-        processor_class = self.load_scene_processor(self, scene_config,self.scene_slot[scene_name],self.current_purpose)
+        processor_class = self.load_scene_processor(self, scene_config, self.scene_slot[scene_name],
+                                                    self.current_purpose)
         self.processors[scene_name] = processor_class
         return self.processors[scene_name]
 
-    def process_multi_question(self, user_input,history_content,chatId):
+    def process_multi_question(self, user_input, history_content, chatId):
         """
         处理多轮问答
         :param user_input:
         :return:
         """
-        self.current_purpose =  get_agent_current_scene(chatId)
+        self.current_purpose = get_agent_current_scene(chatId)
+        print('当前场景：' + self.current_purpose)
         # 查看当前场景参数是否词槽填满且用户确认
         if "确认" in user_input:
             self.get_processor_for_scene(self.current_purpose)
 
-            update_agent_current_scene('',chatId)
+            update_agent_current_scene('', chatId)
 
             current_purpose = self.current_purpose
             self.current_purpose = ''
-            return self.processors[current_purpose].process("YES", None,chatId)
+            return self.processors[current_purpose].process11("YES", None, chatId)
 
         # 检查当前输入是否与上一次的意图场景相关
-        if self.is_related_to_last_intent(user_input,history_content):
+        if self.is_related_to_last_intent(user_input, history_content):
             pass
         else:
             # 不相关时，重新识别意图
             self.current_purpose = ''
-            self.recognize_intent(user_input,chatId)
+            self.recognize_intent(user_input, chatId)
         logging.info('current_purpose: %s', self.current_purpose)
 
         if self.current_purpose in self.scene_templates:
             # 根据场景模板调用相应场景的处理逻辑
             self.get_processor_for_scene(self.current_purpose)
             # 调用抽象类process方法
-            return self.processors[self.current_purpose].process(user_input,None,chatId)
-        
+            return self.processors[self.current_purpose].process(user_input, None, chatId)
+
         print("未命中已有的场景，直接交给大模型自行回答---------------\n")
-        return user_input
-
-
+        result = send_message(user_input, user_input)
+        print(result)
+        return result

@@ -4,8 +4,14 @@ import json
 import os
 import re
 import requests
+import dashscope
 from utils import logger
 from utils.environ import set_None_environ
+from dashscope import Generation
+import random
+
+dashscope.api_key = 'sk-078d0ab6fd19483b888e6e12d8cd15f5'
+
 
 def filename_to_classname(filename):
     """
@@ -41,49 +47,69 @@ def load_all_scene_configs(chatId):
         with open(original_path, 'r', encoding='utf-8') as original_file:
             data = json.load(original_file)
 
-        with open(file_path, 'w',encoding='utf-8') as new_file:
-            json.dump(data,new_file,ensure_ascii=False,indent=4)
+        with open(file_path, 'w', encoding='utf-8') as new_file:
+            json.dump(data, new_file, ensure_ascii=False, indent=4)
 
     current_config = load_scene_templates(file_path)
 
     for key, value in current_config.items():
-            # todo 可以有加载优先级
-            # 只有当键不存在时，才添加到all_scene_configs中
+        # todo 可以有加载优先级
+        # 只有当键不存在时，才添加到all_scene_configs中
         if key not in all_scene_configs:
             all_scene_configs[key] = value
 
     return all_scene_configs
 
+
+# def send_message(prompt, user_input):
+#     """
+#     请求LLM函数
+#     """
+#     # 取消代理
+#     set_None_environ()
+#
+#     # logger.logger_api.info('prompt输入:' + prompt)
+#
+#     # logger.logger_api.info('用户输入:' + user_input)
+#
+#     headers = {
+#         "Content-Type": "application/json",
+#         "Authorization": "-------------"
+#     }
+#     data = {
+#         "model": "Qwen1.5-72b-chat",
+#         "messages": [{"role": "user", "content": prompt}]
+#     }
+#
+#     response = requests.post("model.url", data=json.dumps(data),
+#                              headers=headers).content
+#     print(response)
+#
+#     response_1 = json.loads(response)
+#     message = response_1["choices"][0]["message"]["content"]
+#
+#     # logger.logger_api.info("大模型输出：" + str(message))
+#
+#     return str(message)
+
+
+# 封装模型响应函数
 def send_message(prompt, user_input):
-    """
-    请求LLM函数
-    """
-    # 取消代理
-    set_None_environ()
-    
-    # logger.logger_api.info('prompt输入:' + prompt)
-    
-    # logger.logger_api.info('用户输入:' + user_input)
+    message = [
+        {"role": "user",
+         "content": prompt
+         }
+    ]
+    #print(message)
+    response = Generation.call(
+        model='qwen-plus',
+        messages=message,
+        seed=random.randint(1, 10000),  # 设置随机数种子seed，如果没有设置，则随机数种子默认为1234
+        result_format='message',  # 将输出设置为message形式,
 
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": "-------------"
-    }
-    data = {
-        "model": "Qwen1.5-72b-chat",
-        "messages": [{"role": "user", "content": prompt}]
-    }
-
-    response = requests.post("model.url", data=json.dumps(data),
-                             headers=headers).content
-    print(response)
-
-    response_1 = json.loads(response)
-    message = response_1["choices"][0]["message"]["content"]
-    
-    # logger.logger_api.info("大模型输出：" + str(message))
-    
-    return str(message)
+    )
+    #print(response.output.choices[0].message["content"])
+    return response.output.choices[0].message["content"]
 
 
 def is_slot_fully_filled(json_data):
@@ -93,7 +119,7 @@ def is_slot_fully_filled(json_data):
     # 遍历JSON数据中的每个元素
     for item in json_data:
         # 检查value字段是否为空字符串
-        if item.get('value') == '' or '未提供' in item.get('value') :
+        if item.get('value') == '' or '未提供' in item.get('value'):
             return False  # 如果发现空字符串，返回False
     return True  # 如果所有value字段都非空，返回True
 
@@ -114,7 +140,7 @@ def get_dynamic_example(scene_config):
     else:
         return '答：{"name":"xx","value":"xx"}'
 
-    
+
 def get_slot_update_json(slot):
     # 创建新的JSON对象
     output_data = []
@@ -129,7 +155,7 @@ def get_slot_query_user_json(slot):
     output_data = []
     for item in slot:
         if not item["value"] or "未提供" in item["value"]:
-            new_item = {"name": item["name"], "desc": item["desc"], "value":  item["value"]}
+            new_item = {"name": item["name"], "desc": item["desc"], "value": item["value"]}
             output_data.append(new_item)
     return output_data
 
@@ -147,52 +173,56 @@ def update_slot(json_data, dict_target):
                     target['value'] = item.get('value')
                     break
 
+
 # 在json文件也及时更新
-def update_agent_json(scene_name,slot,chatId):
+def update_agent_json(scene_name, slot, chatId):
     file_path = f"./Agent_data/{chatId}.json"
-    with open(file_path,'r', encoding='utf-8') as file:
+    with open(file_path, 'r', encoding='utf-8') as file:
         data = json.load(file)
 
     for index in range(len(slot)):
-        data[scene_name]["parameters"][index]["value"] = slot[index]["value"]
-    
-    with open(file_path,'w',encoding='utf-8') as file:
-        json.dump(data,file,ensure_ascii=False,indent=4)
+        if data[scene_name]["parameters"][index]["value"] == '':
+            data[scene_name]["parameters"][index]["value"] = slot[index]["value"]
+
+    with open(file_path, 'w', encoding='utf-8') as file:
+        json.dump(data, file, ensure_ascii=False, indent=4)
 
 
 # 清空对应的json文件
-def clear_agent_json(scene_name,chatId):
+def clear_agent_json(scene_name, chatId):
     file_path = f"./Agent_data/{chatId}.json"
-    with open(file_path,'r', encoding='utf-8') as file:
+    with open(file_path, 'r', encoding='utf-8') as file:
         data = json.load(file)
 
     for index in range(len(data[scene_name]["parameters"])):
         data[scene_name]["parameters"][index]["value"] = ""
-    
-    with open(file_path,'w',encoding='utf-8') as file:
-        json.dump(data,file,ensure_ascii=False,indent=4)
+
+    with open(file_path, 'w', encoding='utf-8') as file:
+        json.dump(data, file, ensure_ascii=False, indent=4)
+
 
 def clean_slot_json(slot):
-    
     return get_raw_slot(slot)
 
 
-def update_agent_current_scene(current_scene,chatId):
+def update_agent_current_scene(current_scene, chatId):
     file_path = f"./Agent_data/current_scene.json"
-    with open(file_path,'r',encoding='utf-8') as file:
+    with open(file_path, 'r', encoding='utf-8') as file:
         data = json.load(file)
-    
+
     data[chatId] = current_scene
 
     with open(file_path, 'w', encoding='utf-8') as file:
         json.dump(data, file, ensure_ascii=False, indent=4)
 
+
 def get_agent_current_scene(chatId):
     file_path = f"./Agent_data/current_scene.json"
-    with open(file_path,'r',encoding='utf-8') as file:
+    with open(file_path, 'r', encoding='utf-8') as file:
         data = json.load(file)
-    
-    return data.get(chatId,'')
+
+    return data.get(chatId, '')
+
 
 def format_name_value_for_logging(json_data):
     """
@@ -244,4 +274,3 @@ def fix_json(bad_json):
     except json.JSONDecodeError:
         # 如果解析失败，打印错误信息，但不会崩溃
         print("给定的字符串不是有效的 JSON 格式。")
-
