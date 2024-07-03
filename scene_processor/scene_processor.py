@@ -6,5 +6,8 @@ class SceneProcessor:
         :param user_input: 用户的输入
         :param context: 对话的上下文
         :return: 处理结果
+
+        Args:
+            access_token:
         """
         raise NotImplementedError

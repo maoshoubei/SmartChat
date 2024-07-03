@@ -9,6 +9,7 @@ from utils import logger
 from utils.environ import set_None_environ
 from dashscope import Generation
 import random
+from openai import OpenAI
 
 dashscope.api_key = 'sk-078d0ab6fd19483b888e6e12d8cd15f5'
 
@@ -93,7 +94,7 @@ def load_all_scene_configs(chatId):
 #     return str(message)
 
 
-# 封装模型响应函数
+#封装模型响应函数
 def send_message(prompt, user_input):
     message = [
         {"role": "user",
@@ -110,6 +111,34 @@ def send_message(prompt, user_input):
     )
     #print(response.output.choices[0].message["content"])
     return response.output.choices[0].message["content"]
+
+
+# def send_message(prompt, user_input):
+#     message = [
+#         {"role": "user",
+#          "content": prompt
+#          }
+#     ]
+#     return get_completion(message)
+
+
+client = OpenAI(
+    api_key="sk-T1KVnsM1H8uFEOFtLajjJgFP5H55vWT6HQocGcwbh8U9rPYj",
+    # api_key="sk-TeuPJyltxCvRxc1r33F68280Be064fC7978dC7Bc1728DbDf",
+    base_url="https://api.fe8.cn/v1",
+    # base_url="https://free.gpt.ge/v1/",
+    default_headers={"x-foo": "true"}
+)
+
+
+def get_completion(message, model="gpt-3.5-turbo"):
+    response = client.chat.completions.create(
+        model=model,
+        messages=message,
+        temperature=0,
+        seed=1024  # 随机种子保持不变，temperature 和 prompt 不变的情况下，输出就会不变
+    )
+    return response.choices[0].message.content
 
 
 def is_slot_fully_filled(json_data):

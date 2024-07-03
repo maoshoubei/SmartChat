@@ -21,15 +21,15 @@ class CommonProcessor(SceneProcessor):
         self.slot = slot
         self.scene_prompts = scene_prompts
 
-    def process(self, user_input, history_content, chatId):
+    def process(self, user_input, history_content, chatId, access_token):
         # 处理用户输入，更新槽位，检查完整性，以及与用户交互
         # 先检查本次用户输入是否有信息补充，保存补充后的结果   编写程序进行字符串value值diff对比，判断是否有更新
         message = get_slot_update_message(self.scene_name, self.slot_dynamic_example, self.slot,
                                           user_input)  # 优化封装一下 .format  入参只要填input
 
-        #print('process_message:' + message)
+        print('=======槽位数据Prompt:==============\n' + message)
         new_info_json_raw = send_message(message, user_input)
-
+        print('=======槽位数据提取结果:==============\n' + new_info_json_raw)
         current_values = extract_json_from_string(new_info_json_raw)
         #print(current_values)
         logging.debug('current_values: %s', current_values)
@@ -39,7 +39,7 @@ class CommonProcessor(SceneProcessor):
         update_agent_json(self.current_purpose, self.slot, chatId)
 
         logging.debug('slot update after: %s', self.slot)
-        return self.process11(user_input, history_content, chatId)
+        return self.process11(user_input, history_content, chatId, access_token)
         # 判断参数是否已经全部补全
         # if is_slot_fully_filled(self.slot):
         #     # 参数补全的情况-----
@@ -87,17 +87,19 @@ class CommonProcessor(SceneProcessor):
     def ask_user_for_missing_data(self, user_input):
         message = get_slot_query_user_message(self.scene_name, self.slot, user_input)
         # 请求用户填写缺失的数据
+        print("============== 提示槽位填充的模型Prompt: ==============\n" + message)
         result = send_message(message, user_input)
+        print("============== 提示槽位填充的模型结果: ==============\n" + result)
         return result
 
-    def process11(self, user_input, history_content, chatId):
+    def process11(self, user_input, history_content, chatId, access_token):
         if is_slot_fully_filled(self.slot):
             # 参数补全的情况-----
 
             # 不需要用户二次确认
             if self.scene_name not in agent.is_user_comfirm:
                 clear_agent_json(self.current_purpose, chatId)
-                return Call_API(self.slot, self.scene_config, self.scene_name, user_input)
+                return Call_API(self.slot, self.scene_config, self.scene_name, user_input, access_token)
 
             # 需要用户二次确认
             if user_input == "YES":
@@ -107,7 +109,7 @@ class CommonProcessor(SceneProcessor):
                 self.slot = clean_slot_json(self.scene_config["parameters"])
                 clear_agent_json(self.current_purpose, chatId)
 
-                return Call_API(slot, self.scene_config, self.scene_name, "确认")
+                return Call_API(slot, self.scene_config, self.scene_name, "确认", access_token)
             else:
                 self.respond_with_complete_data()
 

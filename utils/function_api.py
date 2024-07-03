@@ -21,13 +21,14 @@ from agent.google_search import Call_Google_API
 from agent.apply_for_package import apply_for_package_API
 from agent.apply_leave import Call_leave_API
 from agent.create_repair_wo import Call_Create_Repair_Wo_API
+from agent.open_web_page import Call_Open_Web_Page_API
 
 slot_answer = scene_config.scene_prompts.slot_api_answer
 
 
-def Call_API(slot, scene_config, scene_name, user_input):
+def Call_API(slot, scene_config, scene_name, user_input, access_token):
     # 设置代理
-    set_proxy_environ()
+    # set_proxy_environ()
 
     if scene_config["name"] == "问天气":
         print("weather_query--------------------------===================\n")
@@ -59,6 +60,9 @@ def Call_API(slot, scene_config, scene_name, user_input):
     elif scene_config["name"] == "创建维修工单":
         print("创建维修工单--------------------------===================\n")
         return Call_Create_Repair_Wo_API(slot, scene_name, user_input)
+    elif scene_config["name"] == "打开/查看/进入/展示WEB端页面":
+        print("打开/查看/进入/展示WEB端页面--------------------------===================\n")
+        return Call_Open_Web_Page_API(slot, scene_name, user_input, access_token)
     else:
         print("-----------------------没调用API，直接交给大模型进行回答========================\n")
         result = send_message(user_input, user_input)

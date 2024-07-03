@@ -67,7 +67,7 @@
   },
   "create_repair_work_order":{
     "name": "创建维修工单",
-    "description": "帮助用户自动实现创建维修工单流程",
+    "description": "帮助用户实现自动创建维修工单流程",
     "parameters": [
       {
         "name": "设备名称",
@@ -99,6 +99,13 @@
         "type": "string",
         "required": true
       }
+    ]
+  },
+  "launch_web_page":{
+    "name": "打开/查看/进入/展示WEB端页面",
+    "description": "帮助用户实现自动打开web端页面",
+    "parameters": [
+
     ]
   }
 }

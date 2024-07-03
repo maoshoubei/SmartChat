@@ -42,7 +42,9 @@ class ChatbotModel:
         
         # 注意：
             这两次输入是否关联（仅用小数回答关联度，得分范围0.0至1.0）'''
+        print("============== 判断当前输入与上一次意图场景的相关性Prompt: ==============\n" + prompt)
         result = send_message(prompt, None)
+        print("============== 判断当前输入与上一次意图场景的相关性结果: ==============\n" + result)
         return extract_float(result) >= RELATED_INTENT_THRESHOLD
 
     def recognize_intent(self, user_input, chatId):
@@ -58,9 +60,10 @@ class ChatbotModel:
         options_prompt += "\n0. 闲聊场景，例如：你好？你是谁？ - 请回复0"
 
         # 发送选项给用户
-        user_option = f"有下面多种场景，需要你根据用户输入进行判断，时间的问题应该选择请假申请的序号。只答选项\n{options_prompt}\n用户输入：{user_input}\n请回复序号："
+        user_option = f"有下面多种场景，需要你根据用户输入进行判断。只答选项\n{options_prompt}\n用户输入：{user_input}\n请回复序号："
+        print("============== 场景识别Prompt: ==============\n" + user_option)
         user_choice = send_message(user_option, user_input)
-
+        print("============== 场景识别结果: ==============\n" + user_choice)
         logging.debug(f'purpose_options: %s', purpose_options)
         logging.debug(f'user_choice: %s', user_choice)
 
@@ -91,7 +94,7 @@ class ChatbotModel:
         self.processors[scene_name] = processor_class
         return self.processors[scene_name]
 
-    def process_multi_question(self, user_input, history_content, chatId):
+    def process_multi_question(self, user_input, history_content, chatId, access_token):
         """
         处理多轮问答
         :param user_input:
@@ -107,7 +110,7 @@ class ChatbotModel:
 
             current_purpose = self.current_purpose
             self.current_purpose = ''
-            return self.processors[current_purpose].process11("YES", None, chatId)
+            return self.processors[current_purpose].process11("YES", None, chatId, access_token)
 
         # 检查当前输入是否与上一次的意图场景相关
         if self.is_related_to_last_intent(user_input, history_content):
@@ -122,7 +125,7 @@ class ChatbotModel:
             # 根据场景模板调用相应场景的处理逻辑
             self.get_processor_for_scene(self.current_purpose)
             # 调用抽象类process方法
-            return self.processors[self.current_purpose].process(user_input, None, chatId)
+            return self.processors[self.current_purpose].process(user_input, None, chatId, access_token)
 
         print("未命中已有的场景，直接交给大模型自行回答---------------\n")
         result = send_message(user_input, user_input)
